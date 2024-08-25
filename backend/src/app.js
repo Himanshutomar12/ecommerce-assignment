@@ -4,16 +4,22 @@ const serverless = require("serverless-http");
 const authRoutes = require('../routes/auth');
 const buyerRoutes = require('../routes/buyer');
 const sellerRoutes = require('../routes/seller');
+const { query } = require('../db/index');
 require('dotenv').config();
 
-const router = express.Router();
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
 
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
+    try {
+        const userExists = await query('SELECT * FROM users');
+        res.send("User Fetched");
+    } catch (error) {
+        res.send("Something Wrong");
+    }
     res.send("Running");
 })
 
