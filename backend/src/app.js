@@ -14,14 +14,8 @@ app.use(express.json());
 
 
 app.get("/", async (req, res) => {
-    try {
-        const userExists = await query('SELECT * FROM users');
-        res.send("User Fetched");
-    } catch (error) {
-        res.send("Something Wrong");
-    }
     res.send("Running");
-})
+});
 
 // Routes
 app.use('/api/auth', require('../routes/auth'));

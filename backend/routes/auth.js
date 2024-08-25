@@ -11,9 +11,7 @@ router.post('/signup', async (req, res) => {
     console.log(name, email);
     try {
         // Check if the user already exists
-        console.log("Heyyy");
         const userExists = await query('SELECT * FROM users WHERE email = $1', [email]);
-        console.log("JUser",userExists.rows);
         if (userExists.rows.length > 0) {
             return res.status(400).json({ msg: 'User already exists' });
         }
