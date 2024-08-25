@@ -1,39 +1,47 @@
 'use client'
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import * as Common from "../../../components/Common";
+import $ from "jquery";
 
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const router = useRouter();
+    const [loader, setLoader] = useState(false);
+
     useEffect(() => {
         sessionStorage.clear();
     }, []);
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setLoader(true);
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/login', { email, password }, {
+            const res = await axios.post(Common.apiLogin, { email, password }, {
                 headers: { 'Content-Type': 'application/json' }
             });
             sessionStorage.setItem('token', res.data.token);
             sessionStorage.setItem('username', res.data.name);
             sessionStorage.setItem('email', res.data.email);
             sessionStorage.setItem('role', res.data.role);
+            setLoader(false);
             if (res.data.role === "seller") {
                 router.push('/seller');
             } else {
                 router.push('/buyer');
             }
         } catch (err) {
+            setLoader(false);
             console.error('Login failed:', err.response ? err.response.data : err.message);
             alert(err.response.data.msg);
         }
     };
 
     return (
+        <>
+        {loader && <div className="loader"></div>}
         <div className="flex items-center justify-center h-screen">
             <form onSubmit={handleLogin} className="p-4 w-80 bg-white rounded shadow-md">
                 <h2 className="text-xl font-semibold mb-4">Login</h2>
@@ -56,5 +64,6 @@ export default function Login() {
                 </button>
             </form>
         </div>
+        </>
     );
 }

@@ -14,6 +14,7 @@ export default function SellerDashboard() {
     const [userName, setUserName] = useState("");
     const [role, setRole] = useState("");
     const router = useRouter();
+    const [loader, setLoader] = useState(false);
 
     useEffect(() => {
         const ses_token = sessionStorage.getItem("token");
@@ -26,12 +27,15 @@ export default function SellerDashboard() {
 
 
     const fetchProducts = async (ses_token) => {
+        setLoader(true);
         try {
-            const { data } = await axios.get('http://localhost:5000/api/products', {
+            const { data } = await axios.get(Common.apiSeller, {
                 headers: { Authorization: `Bearer ${ses_token}` },
             });
+            setLoader(false);
             setProducts(data);
         } catch (err) {
+            setLoader(false);
             console.error('Error fetching products:', err);
             if (err.response.status === 401) {
                 router.push("/");
@@ -45,6 +49,7 @@ export default function SellerDashboard() {
     };
 
     const handleSubmit = async (e) => {
+        setLoader(true);
         e.preventDefault();
         const config = {
             headers: {
@@ -56,12 +61,14 @@ export default function SellerDashboard() {
         }
         try {
             if (editingProduct) {
-                await axios.put(`http://localhost:5000/api/products/${editingProduct.id}`, form, config);
+                await axios.put(`${Common.apiSeller}/${editingProduct.id}`, form, config);
                 setEditingProduct(null);
                 fetchProducts(token);
+                setLoader(false);
             } else {
-                await axios.post('http://localhost:5000/api/products', form, config);
+                await axios.post(Common.apiSeller, form, config);
                 fetchProducts(token);
+                setLoader(false);
             }
             setForm({ name: '', category: '', description: '', price: '', discount: '' });
             router.refresh(); // Refresh the data
@@ -76,20 +83,24 @@ export default function SellerDashboard() {
     };
 
     const handleDelete = async (id) => {
+        setLoader(true);
         try {
-            await axios.delete(`http://localhost:5000/api/products/${id}`, {
+            await axios.delete(`${Common.apiSeller}/${id}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
+            setLoader(false);
             setProducts(products.filter(product => product.id !== id));
         } catch (err) {
+            setLoader(false);
             console.error('Error deleting product:', err);
         }
     };
 
     return (
         <>
+            {loader && <div className="loader"></div>}
             <Navbar username={userName} role={role} />
             <div className="container mx-auto p-4">
                 <h1 className="text-xl font-semibold mb-4">Dashboard</h1>

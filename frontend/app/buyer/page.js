@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from "../../components/Navbar";
+import * as Common from "../../components/Common";
 
 const BuyerPage = () => {
     const [products, setProducts] = useState([]);
@@ -12,7 +13,7 @@ const BuyerPage = () => {
     const [userName, setUserName] = useState("");
     const [role, setRole] = useState("");
     const [activeTab, setActiveTab] = useState('products'); // Manage active tab
-
+    const [loader, setLoader] = useState(false);
 
     useEffect(() => {
         const ses_token = sessionStorage.getItem("token");
@@ -21,7 +22,7 @@ const BuyerPage = () => {
         setRole(sessionStorage.getItem("role"));
         const fetchProducts = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/items', {
+                const response = await axios.get(Common.apiGetProducts, {
                     params: { search, category },
                     headers: { Authorization: `Bearer ${ses_token}` },
                 });
@@ -39,34 +40,42 @@ const BuyerPage = () => {
     }, [search, category]);
 
     const fetchCart = async (ses_token) => {
+        setLoader(true);
         try {
-            const response = await axios.get('http://localhost:5000/api/items/cart', {
+            const response = await axios.get(Common.apiCart, {
                 headers: { Authorization: `Bearer ${ses_token}` },
             });
+            setLoader(false);
             setCart(response.data);
         } catch (err) {
+            setLoader(false);
             console.error('Error fetching products', err);
         }
     };
 
     const handleAddToCart = async (productId) => {
+        setLoader(true);
         try {
-            await axios.post('http://localhost:5000/api/items/cart', { productId, quantity: 1 }, {
+            await axios.post(Common.apiCart, { productId, quantity: 1 }, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+            setLoader(false);
             fetchCart(token);
             alert('Product added to cart');
         } catch (err) {
+            setLoader(false);
             console.error('Error adding product to cart', err);
         }
     };
 
     const handleRemoveFromCart = async (cartItemId, productid) => {
+        setLoader(true);
         try {
-            await axios.delete('http://localhost:5000/api/items/cart/', {
+            await axios.delete(Common.apiCart, {
                 params: { cartId: cartItemId, productid: productid },
                 headers: { Authorization: `Bearer ${token}` }
             });
+            setLoader(false);
             const itemIndex = cart.findIndex(item => item.id === cartItemId);
 
             if (cart[itemIndex].quantity > 1) {
@@ -78,12 +87,14 @@ const BuyerPage = () => {
                 setCart(cart.filter(item => item.id !== cartItemId));
             }
         } catch (err) {
+            setLoader(false);
             console.error('Error removing product from cart', err);
         }
     };
 
     return (
         <>
+            {loader && <div className="loader"></div>}
             <Navbar username={userName} role={role} />
             <div className="container mx-auto p-4">
                 <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
